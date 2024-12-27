@@ -1,0 +1,48 @@
+#include <SPI.h>
+#include <RF24.h>
+#include <LiquidCrystal.h>
+
+LiquidCrystal lcd(2, 3, 4, 5, 6, 7);
+
+RF24 radio(9, 10);
+const byte address[6] = "00001";х
+
+void setup() {
+  Serial.begin(9600);
+  lcd.begin(16, 2);
+  lcd.print("Waiting for data");
+  
+  radio.begin();
+  radio.openReadingPipe(1, address);
+  radio.startListening();
+}
+
+void loop() {
+  if (radio.available()) {
+    float h, t;
+    int lightLevel;
+
+    radio.read(&h, sizeof(h));
+    radio.read(&t, sizeof(t));
+    radio.read(&lightLevel, sizeof(lightLevel));
+
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("H: ");
+    lcd.print(h);
+    lcd.print("% T: ");
+    lcd.print(t);
+    lcd.print("C");
+
+    lcd.setCursor(0, 1);
+    lcd.print("Light: ");
+    lcd.print(lightLevel);
+
+    Serial.print("Humidity: ");
+    Serial.print(h);
+    Serial.print(" Temperature: ");
+    Serial.print(t);
+    Serial.print(" Light Level: ");
+    Serial.println(lightLevel);
+  }
+}

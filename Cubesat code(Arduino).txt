@@ -1,0 +1,42 @@
+#include <DHT.h>
+#include <SPI.h>
+#include <RF24.h>
+
+#define DHTPIN 2
+#define DHTTYPE DHT11
+DHT dht(DHTPIN, DHTTYPE);
+
+RF24 radio(9, 10);
+const byte address[6] = "00001";
+
+void setup() {
+  Serial.begin(9600);
+  dht.begin();
+  radio.begin();
+  radio.openWritingPipe(address);
+  radio.setPALevel(RF24_PA_HIGH);
+}
+
+void loop() {
+  float h = dht.readHumidity(2);
+  float t = dht.readTemperature(2);
+  int lightLevel = analogRead(A5);
+
+  if (isnan(h) || isnan(t)) {
+    Serial.println("Ошибка чтения с DHT11!");
+    return;
+  }
+
+  radio.write(&h, sizeof(h));
+  radio.write(&t, sizeof(t));
+  radio.write(&lightLevel, sizeof(lightLevel));
+
+  Serial.print("Humidity: ");
+  Serial.print(h);
+  Serial.print(" Temperature: ");
+  Serial.print(t);
+  Serial.print(" Light Level: ");
+  Serial.println(lightLevel);
+
+  delay(2000);
+}
